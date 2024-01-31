@@ -225,7 +225,7 @@ def comp' (α β γ : Type) : (β → γ) → (α → β) → (α → γ)
 | g, f => fun a => g (f a)
 
 def square (n : Nat) : Nat := n^2
-def inc (n : Nat) := Nat.succ n
+def inc (n : Nat) := n + 1
 
 #reduce (comp' Nat Nat Nat square inc) 5
 

@@ -1,9 +1,13 @@
+-- 2/5
 -- [1, 2] is really 1::(2::nil)
 
 -- sum an entire list (or do some other operation)
 def foldr''' : (Nat → Nat → Nat) → List Nat → Nat
 | _, List.nil => 0
 | op, h::t => op h (foldr''' op t)
+
+-- id is the identity element for op
+-- 0 for addition, 1 for multuplication, true for and
 
 def foldr'' : (Nat → Nat → Nat) → Nat → List Nat → Nat
 | _, id, [] => id
@@ -42,3 +46,32 @@ def combine : String → Bool → Bool := λ s b => isEvenLen s && b
 def foldr { α β : Type } : (α → β → β) → β → List α → β
 | _, id, List.nil => id
 | op, id, (h::t) => op h (foldr op id t)
+
+/-
+2/7
+structure is a key word in lean for introducing a data type
+mk is the default constructor for structure
+you can represent logical propositions as types
+in this definition, left_id and right_id are both propositions
+-/
+
+structure my_monoid (α : Type) where
+(op : α → α → α)
+(id : α)
+(left_id : ∀ (a : α), op id a = a)
+(right_id : ∀ (a : α), op a id = a)
+
+/-
+rewrite my_monoid using inductive
+structure is basically an inductively defeined data type, useful when there is just one constructor
+-/
+
+inductive my_monoid' (α : Type) where
+| mk : (op : α → α → α) →
+(id : α) →
+(left_id : ∀ (a : α), op id a = a) →
+(right_id : ∀ (a : α), op a id = a) → my_monoid' α
+
+-- sorry key word denotes that we don't know how to provide the proof necessary for this structure
+
+def a_monoid : my_monoid Nat := my_monoid.mk Nat.add 0 sorry sorry

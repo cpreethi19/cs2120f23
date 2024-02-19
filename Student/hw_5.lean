@@ -75,6 +75,11 @@ follows has everything we need.
 structure functor (c : Type → Type) where
 map {α β : Type} (f : α → β) (ic : c α) : c β
 
+-- better definition has class keyword that shows
+@[class]
+structure functor' (c : Type → Type) where
+map {α β : Type} (f : α → β) (ic : c α) : c β
+
 /-!
 Here are functor *instances* for the polymorphic
 container-like List and Option types.
@@ -94,6 +99,19 @@ Hint: See the "convert" function from class.
 def do_map {α β : Type} {c : Type → Type} (m : functor c) :
   (f : α → β) → c α → c β
 | f, c => m.map f c
+
+/-!
+Let's change do_map' so that it only has to take 2 arguments
+We need to use functor'
+-/
+def do_map' {α β : Type} {c : Type → Type} [m : functor' c] :
+  (f : α → β) → c α → c β
+| f, c => m.map f c
+
+instance : functor' List := ( list_map )
+
+#reduce do_map' Nat.succ [1, 2, 3]
+#reduce Nat.succ <$> [0, 1, 2]
 
 -- These test cases should succeed when do_map is right
 #eval do_map list_functor Nat.succ [1,2,3]  -- [2, 3, 4]
@@ -164,3 +182,19 @@ Option, Box, and Tree values using <$> notation.
 #reduce (box_functor <$> Nat.succ) (Box.contents 3)
 #reduce (tree_functor <$> Nat.succ) a_tree
 #reduce (tree_functor <$> String.length) b_tree
+
+
+/-!
+More notes lecture 2/19
+Group vs Monoids
+Group type class is a Monoid but with inverse rule (a * 1/a = 1)
+Nat is a monoid but not a group because there is no inverse defined in nats
+
+Types have universe levels, if you want to make something universal
+-/
+universe u
+inductive Box' {α : Type u} (a : α)
+def box_map' {α β : Type u} : (α → β) → Box' α → Box' β
+| f, (Box'.mk a) => (Box'.mk ) f a
+
+instance : Functor Box':= ( box_map', _ )

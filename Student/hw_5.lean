@@ -144,7 +144,7 @@ def b_tree :=
       Tree.empty
     )
 
-#reduce do_map tree_functor (λ s => s ++ "!") (b_tree)
+#reduce do_map tree_functor String.length (b_tree)
 
 /-!
 Here's an infix notation for do_map and a few examples
@@ -161,6 +161,6 @@ Rewrite your/our examples of mapping over List,
 Option, Box, and Tree values using <$> notation.
 -/
 #eval (λ s => s ++ "!") <$> some "Hi"
-#eval Nat.succ <$> Box.contents 3
-#eval Nat.succ <$> a_tree
-#eval (λ s => s ++ "!") <$> b_tree
+#reduce (box_functor <$> Nat.succ) (Box.contents 3)
+#reduce (tree_functor <$> Nat.succ) a_tree
+#reduce (tree_functor <$> String.length) b_tree

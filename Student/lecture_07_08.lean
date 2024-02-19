@@ -81,10 +81,59 @@ def pred : Nat → Option Nat
 #reduce pred 3
 #reduce pred 0
 
-/-
-define option map for square
+def list_map {α β : Type} : (α → β) → List α → List β
+| _, List.nil => List.nil
+| f, h::t => f h::list_map f t
+
+def option_map {α β : Type} : (α → β) → Option α → Option β
+| _, Option.none => Option.none
+| f, Option.some a => some (f a)
+
+inductive Tree (α : Type) : Type
+| empty
+-- | node : α → Tree α → Tree α → Tree α
+| node (a : α) (l r : Tree α) : Tree α
+
+def tree_map {α β : Type} : (α → β) → Tree α → Tree β
+| _, Tree.empty => Tree.empty
+| f, (Tree.node a l r) => Tree.node (f a) (tree_map f l) (tree_map f r)
+
+#reduce tree_map Nat.succ Tree.empty
+
+def a_tree :=
+  Tree.node
+    1
+    (Tree.node
+      2
+      Tree.empty
+      Tree.empty
+    )
+    (Tree.node
+      3
+      Tree.empty
+      Tree.empty
+    )
+
+#reduce tree_map Nat.succ a_tree
+
+
+/-!
 -/
 
-def option_map {α β: Type} : (α → β) → Option α → Option β
-| f, Option.none => Option.none
-| f, Option.some a => some (f a)
+structure functor {α β : Type} (c : Type → Type) : Type where
+map (f : α → β) (ic : c α) : c β
+
+def list_functor {α β : Type} : @functor α β List := functor.mk list_map
+#check @list_functor
+def option_functor {α β : Type} : @functor α β Option := functor.mk option_map
+
+def convert {α β : Type} (c : Type → Type) (m : @functor α β c) : (f : α → β) → c α → c β
+| f, c => m.map f c
+
+#reduce convert List list_functor Nat.succ [1, 2, 3, 4, 5]
+#reduce convert Option option_functor Nat.succ (Option.some 3)
+
+inductive Box (α : Type)
+| contents (a : α)
+
+#reduce convert Box _ Nat.succ (Box.contents 3)

@@ -379,8 +379,17 @@ class VAdd (G : Type u) (P : Type v) : Type (max u v)
 
 /-! EXERCISE. Explain in English the meanings of the axioms
 for additive actions. Then implement AddAction for the Rotation type.
+
+Explanation:
+  vadd represents the actual action of adding the vector-like rotational actions to the
+    point-like rotational states. It takes an element from G (rotational actions) and an
+    element from P (rotational states) and returns a new element from P (rotational state).
+  zero_vadd is the identity definition for this monoid and it enforces the rule of adding
+    a vector-like rotation of 0 to any state will result in the same state.
+  add_vadd enforces the constraint of associativity, meaning that adding two rotational actions
+    together before adding it to the state is the same as adding the actions in sequence.
 -/
--- class 2/26
+
 def vadd_rot_state : Rotation → State → State
 | r0, s => s
 | r120, s0 => s120
@@ -424,22 +433,6 @@ def sub_State : State → State → Rotation
 | s240, s120 => r120
 | s240, s240 => r0
 
--- class 2/28
-#check AddTorsor
-/-
-class AddTorsor (G : outParam (Type*)) (P : Type*) [outParam <| AddGroup G] extends AddAction G P,
-  VSub G P where
-  [nonempty : Nonempty P]
-  /-- Torsor subtraction and addition with the same element cancels out. -/
-  vsub_vadd' : ∀ p1 p2 : P, (p1 -ᵥ p2 : G) +ᵥ p2 = p1
-  /-- Torsor addition and subtraction with the same element cancels out. -/
-  vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g
-#align add_torsor AddTorsor
-
-to show that type is nonempty (was called inhabited ), just provide a value for that type
-we can just sue sorry for the proofs of vsub_vadd and vadd_vsub
--/
-
 /-
 Structures of a group has to have the properties of a monoid (addition operator, identity definition)
 as well as the inverse property, which will also allow for the subtraction operator
@@ -471,9 +464,52 @@ SubNegMonoid.mk.{u}
 SubNegMonoid G
 -/
 
+def neg_Rotation : Rotation → Rotation
+| r0 => r0
+| r120 => r240
+| r240 => r120
+
+instance : Neg Rotation := { neg := neg_Rotation }
+
+def sub_Rotations (a b : Rotation) : Rotation := a + -b
+
+instance : Sub Rotation := { sub := sub_Rotations }
+
+instance : SubNegMonoid Rotation := {
+  sub_eq_add_neg := sorry
+}
+
+instance : AddGroup Rotation := {
+  add_left_neg := sorry
+}
+
+
 /-!
 Homework #2: Endow State and Rotation with the additional structure of an
 additive torsor over that (additive) group.
 -/
 
 -- Hint: follow the same approach
+
+#check AddTorsor
+/-
+class AddTorsor (G : outParam (Type*)) (P : Type*) [outParam <| AddGroup G] extends AddAction G P,
+  VSub G P where
+  [nonempty : Nonempty P]
+  /-- Torsor subtraction and addition with the same element cancels out. -/
+  vsub_vadd' : ∀ p1 p2 : P, (p1 -ᵥ p2 : G) +ᵥ p2 = p1
+  /-- Torsor addition and subtraction with the same element cancels out. -/
+  vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g
+#align add_torsor AddTorsor
+
+to show that type is nonempty (was called inhabited ), just provide a value for that type
+we can just use sorry for the proofs of vsub_vadd and vadd_vsub
+-/
+instance : VSub Rotation State := ⟨ sub_State ⟩
+
+
+instance : AddTorsor Rotation State := {
+    nonempty := Nonempty.intro s0,
+    vsub_vadd' := sorry,
+    vadd_vsub' := sorry
+}

@@ -68,3 +68,22 @@ inductive BobStudiesAtUVAOrMaryStudiesAtUVA
 
 example : BobStudiesAtUVAOrMaryStudiesAtUVA :=
   BobStudiesAtUVAOrMaryStudiesAtUVA.left b
+
+inductive MyAnd (α β : Type)
+| mk (a : α) (b : β)
+
+example : MyAnd BobStudiesAtUVA MaryStudiesAtUVA := MyAnd.mk b m
+
+inductive MyOr (α β : Type)
+| inl (a : α)
+| inr (b : β)
+
+example : MyOr BobStudiesAtUVA MaryStudiesAtUVA := MyOr.inl b
+
+example : MyOr BobStudiesAtUVA MaryStudiesAtUVA := MyOr.inr m
+
+def MyNot (α : Type) := α → Empty
+
+example : MyNot BobStudiesAtUVA := λ b => _ --Nope
+
+example : MyNot MarkoStudiesAtUVA := λ m => nomatch m

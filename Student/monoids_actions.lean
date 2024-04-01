@@ -253,29 +253,6 @@ inherited *Add.add* operation. For now, until we learn more
 about constructing proofs, we'll just "stub out" this value.
 -/
 
-theorem rot2:
-∀ (a : Rotation), 0 + a = a :=
-by
-  intros a
-  cases a
-  repeat{
-    rfl
-  }
-
-theorem rot_add_assoc':
-∀ (a b c : Rotation), (a + b) + c = a + (b + c) :=
-by
-  intros a b c
-  cases a
-  repeat{
-    cases b
-    repeat{
-      cases c
-      repeat{rfl}
-    }
-  }
-
-
 theorem rot_add_assoc:
 ∀ (a b c : Rotation), (a + b) + c = a + (b + c)
 | r0, b, c => match b with
@@ -318,7 +295,21 @@ theorem rot_add_assoc:
     | r120 => rfl
     | r240 => rfl
 
-instance : AddSemigroup Rotation := { add_assoc := rot_add_assoc }
+
+theorem rot_add_assoc':
+∀ (a b c : Rotation), (a + b) + c = a + (b + c) :=
+by
+  intros a b c
+  cases a
+  repeat{
+    cases b
+    repeat{
+      cases c
+      repeat{rfl}
+    }
+  }
+
+instance : AddSemigroup Rotation := { add_assoc := rot_add_assoc' }
 
 /-!
 #### AddMonoid
@@ -355,9 +346,27 @@ point, it's thus super-easy to instantiate the AddMonoid class
 for the Rotation type.
 -/
 
+theorem rot_zero_add:
+∀ (a : Rotation), 0 + a = a :=
+by
+  intros a
+  cases a
+  repeat{
+    rfl
+  }
+
+theorem rot_add_zero:
+∀ (a : Rotation), a + 0 = a :=
+by
+  intros a
+  cases a
+  repeat{
+    rfl
+  }
+
 instance : AddMonoid Rotation := {
-  zero_add := sorry
-  add_zero := sorry
+  zero_add := rot_zero_add
+  add_zero := rot_add_zero
 }
 
 #reduce 0 • r120              -- 0 means r0; • means *nsmul*
@@ -457,9 +466,31 @@ instance : VAdd Rotation State := ⟨ vadd_rot_state ⟩
 
 #check AddAction
 
+theorem zero_vadd':
+∀ (p : State), 0 +ᵥ p = p :=
+by
+  intros p
+  cases p
+  repeat{
+    rfl
+  }
+
+theorem add_vadd:
+∀ (g₁ g₂ : Rotation) (p : State), g₁ + g₂ +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p) :=
+by
+  intros g₁ g₂ p
+  cases g₁
+  repeat{
+    cases g₂
+    repeat{
+      cases p
+      repeat{rfl}
+    }
+  }
+
 instance : AddAction Rotation State := {
-    zero_vadd := sorry,
-    add_vadd := sorry
+    zero_vadd := zero_vadd',
+    add_vadd := add_vadd,
   }
 
 #reduce ((2 • r120) + (3 • r240) + (0 • r120)) +ᵥ r120

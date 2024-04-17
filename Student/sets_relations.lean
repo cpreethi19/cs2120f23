@@ -1,14 +1,15 @@
 import Mathlib.Logic.Relation
 import Mathlib.Logic.Function.Basic
+import Mathlib.LinearAlgebra.AffineSpace.Basic
 
 /-!
 binary relation on a type, α
 - reflexive : everything related to itself
-- symmetric
+- symmetric : if x = y then y = x
 - transitive : if a is related to b and b is related to c, a is related to c
-- equivalence (Core.lean)
+- equivalence : needs to reflexive, symmetric, transitive (Core.lean)
 - asymmetric : has self loops
-- antisymmetric
+- antisymmetric : if x < y then y < x then x = y
 - closures
 - inverse
 
@@ -83,3 +84,100 @@ functions
 - inverse
 - etc
 -/
+
+/-
+In Lean, we will often represent a set, S, of elements of type
+α as a membership predicate, mem: α → Prop.
+-/
+
+def a_set : Set Nat := {1, 2, 3 }
+def b_set : Set Nat := {3, 4, 5}
+
+def a_set' : Set Nat := { n : Nat | n = 1 ∨ n = 2 ∨ n = 3}
+
+example : 1 ∈ a_set := by
+  show a_set 1
+  unfold a_set
+  show 1=1 ∨ 1=2 ∨ 1=3
+  exact Or.inl rfl
+
+example : 3 ∈ a_set ∩ b_set := by
+  show 3 ∈ a_set ∧ 3 ∈ b_set
+  exact ⟨ Or.inr (Or.inr rfl) , Or.inl rfl ⟩
+
+example : 2 ∈ a_set ∪ b_set := by
+  show 2 ∈ a_set ∨ 2 ∈ b_set
+  exact Or.inl (Or.inr (Or.inl rfl))
+
+example : 2 ∈ a_set \ b_set :=
+  show 2 ∈ a_set ∧ 2 ∉ b_set
+  exact ⟨ Or.inr (Or.inl rfl) , λ h => nomatch h ⟩
+
+example : 3 ∉ a_set \ b_set := _
+
+/-
+Properties of Relations
+-/
+
+#reduce Reflexive (@Eq Nat)
+
+lemma eq_nat_is_refl : Reflexive (@Eq Nat) := by
+  unfold Reflexive
+  intro x
+  exact rfl
+
+lemma eq_nat_is_symm : Symmetric (@Eq Nat) := by
+  unfold Symmetric
+  intro x y
+  intro hxy
+  rw [hxy]
+
+#reduce eq_nat_is_symm
+
+lemma eq_nat_is_trans : Transitive (@Eq Nat) := by
+  unfold Transitive
+  intro x y z
+  intro hxy hyz
+  rw [hxy]
+  rw [hyz]
+
+theorem eq_nat_is_equiv : Equivalence (@Eq Nat) :=
+  Equivalence.mk @eq_nat_is_refl @eq_nat_is_symm @eq_nat_is_trans
+
+def cong_mod_n : Nat → Nat → Nat → Prop := λ n a b => a%n = b%n
+
+theorem cong_mod_n_equiv': ∀ n, Equivalence (cong_mod_n n) :=
+  by
+    intro n
+    exact Equivalence.mk _ _ _
+
+lemma cong_mod_n_rfl : ∀ (n: Nat), Reflexive (cong_mod_n n) := by
+  intro n
+  unfold cong_mod_n
+  unfold Reflexive
+  intro a
+  exact rfl
+
+lemma cong_mod_n_symm : ∀ (n: Nat), Symmetric (cong_mod_n n) := by
+  intro n
+  unfold Symmetric
+  intro x y
+  intro hxy
+  unfold cong_mod_n
+  unfold cong_mod_n at hxy
+  rw [hxy]
+
+lemma cong_mod_n_trans : ∀ (n : Nat), Transitive (cong_mod_n n) := by
+  intro n a b c hab hbc
+  unfold cong_mod_n
+  unfold cong_mod_n at hab hbc
+  rw [hab, hbc]
+
+theorem cong_mod_n_equiv : ∀ (n: Nat), Equivalence (cong_mod_n n) :=
+  by
+    intro n
+    unfold cong_mod_n
+    exact Equivalence.mk
+      (by intro x; rfl)
+      (by intro x y h; rw [h])
+      (by intros x y z hxy hyz; rw [hxy, hyz])
